@@ -1,0 +1,12 @@
+{
+  "require": {
+	"mediawiki/semantic-media-wiki": "^2.5",
+	"mediawiki/mabs": "dev-feature/init-repo"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "../extensions/MABS"
+    }
+  ]
+}
