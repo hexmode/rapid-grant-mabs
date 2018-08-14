@@ -79,8 +79,8 @@ http://~{host}~
 REL1_31
 #+END_SRC
 
-1) Set up =.direnv= and =.htaccess= and get composer.
- #+BEGIN_SRC sh :tangle .direnv
+1) Set up =.envrc= and =.htaccess= and get composer.
+ #+BEGIN_SRC sh :tangle .envrc
 export LOCAL_GIT=~{local-git}~
 export UPSTREAM_GIT=~{upstream-git}~
 export VMPATH=~{vmpath}~
@@ -301,7 +301,7 @@ setenv RELBRANCH ~{relbranch}~
 
 2) Handle composer and db update
 #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
-  eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sh -c \"'. ~{dir}~/.direnv; php ~{mw-install-path}~/maintenance/update.php --quick'\""
+  eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sh -c \"'. ~{dir}~/.envrc; php ~{mw-install-path}~/maintenance/update.php --quick'\""
 #+END_SRC
 
 3) Adapt and install mediawiki config
