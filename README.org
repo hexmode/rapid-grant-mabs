@@ -1,7 +1,7 @@
 +TITLE: MABS
 #+PROPERTY: header-args    :results output :noweb yes
 * Initial setup
-**  Environment and MediaWiki export
+** Environment and MediaWiki export
 #+NAME:  repo-dir
 #+BEGIN_SRC sh :results output :exports none
 /home/mah/repo
@@ -79,7 +79,7 @@ http://~{host}~
 REL1_31
 #+END_SRC
 
-1) Set up =.envrc= and =.htaccess= and get composer.
+1) Set up =.envrc= get composer.
  #+BEGIN_SRC sh :tangle .envrc
 export LOCAL_GIT=~{local-git}~
 export UPSTREAM_GIT=~{upstream-git}~
@@ -99,26 +99,6 @@ export WIKIPASS=~{wikipass}~
 export WIKISERVER=~{wikiserver}~
 export WIKIPATH=~{wikipath}~
 export RELBRANCH=~{relbranch}~
- #+END_SRC
- #+BEGIN_SRC apache :tangle .htaccess
-setenv LOCAL_GIT ~{local-git}~
-setenv UPSTREAM_GIT ~{upstream-git}~
-setenv VMPATH ~{vmpath}~
-setenv DEBUG ~{debug}~
-setenv DIR ~{dir}~
-setenv MW_INSTALL_PATH ~{mw-install-path}~
-setenv WIKI ~{wiki}~
-setenv DBNAME ~{dbname}~
-setenv HOST ~{host}~
-setenv HOSTSERVER ~{hostserver}~
-setenv DBSERVER ~{dbserver}~
-setenv WIKIUSER ~{wikiuser}~
-setenv WIKIDBUSER ~{wikidbuser}~
-setenv WIKIDBPASS ~{wikidbpass}~
-setenv WIKIPASS ~{wikipass}~
-setenv WIKISERVER ~{wikiserver}~
-setenv WIKIPATH ~{wikipath}~
-setenv RELBRANCH ~{relbranch}~
  #+END_SRC
 
 2) check out correct branch
