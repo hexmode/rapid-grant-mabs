@@ -42,7 +42,7 @@ fi
 grep -q ParserFunctions LocalSettings.php || echo "wfLoadExtension( 'ParserFunctions' );" | tee -a LocalSettings.php
 grep -q MABS LocalSettings.php || echo "wfLoadExtension( 'MABS' );" | tee -a LocalSettings.php
 
-eval "ssh -o UserKnownHostsFile=hostpubkey mabs.default sh -c \"'. /home/mah/client/mabs/.direnv; php /home/mah/client/mabs/mediawiki/maintenance/update.php --quick'\""
+eval "ssh -o UserKnownHostsFile=hostpubkey mabs.default sh -c \"'. /home/mah/client/mabs/.envrc; php /home/mah/client/mabs/mediawiki/maintenance/update.php --quick'\""
 
 eval "ssh -o UserKnownHostsFile=hostpubkey mabs.default sudo cp /home/mah/client/mabs/wiki.conf /etc/apache2/conf-available"
 eval "ssh -o UserKnownHostsFile=hostpubkey mabs.default sudo a2enconf wiki"
