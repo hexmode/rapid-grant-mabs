@@ -1,4 +1,7 @@
 #!/bin/bash -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+. $DIR/.envrc
+
 connect() {
 	name=$1
 	total=$2
@@ -31,8 +34,12 @@ if [ $count -ge $total ]; then
 	exit 1
 fi
 
-eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,${WIKI},g /etc/hostname"
-eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,${WIKI},g /etc/hosts"
-eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo reboot"
+debianSudoIt() {
+	eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo $*"
+}
+
+debianSudoIt sed -i s,debian,${WIKI},g /etc/hostname
+debianSudoIt sed -i s,debian,${WIKI},g /etc/hosts
+debianSudoIt reboot
 
 connect ${HOST} 10

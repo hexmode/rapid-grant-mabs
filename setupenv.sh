@@ -12,5 +12,6 @@ git submodule update --init
 echo on ${RELBRANCH}
 cd ${DIR}
 
-grep -q "${DIR}" /etc/exports || echo "${DIR} *(rw,root_squash,subtree_check)" | sudo tee -a /etc/exports
+grep -q "${DIR}" /etc/exports ||
+	echo "${DIR} *(rw,root_squash,subtree_check)" | sudo tee -a /etc/exports
 sudo exportfs -ra
