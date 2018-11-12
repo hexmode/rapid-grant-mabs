@@ -201,7 +201,7 @@ export RELBRANCH=~{relbranch}~
    jq '.["require"]["mediawiki/semantic-media-wiki"] = "^2.5"' composer.local.json | sponge composer.local.json
    jq '.["require"]["mediawiki/mabs"] = "dev-master"' composer.local.json | sponge composer.local.json
 
-   rm -f ${MW_INSTALL_Path}/composer.local.json && ln -s ${DIR}/composer.local.json ${MW_INSTALL_Path}/composer.local.json
+   rm -f ${MW_INSTALL_PATH}/composer.local.json && ln -s ${DIR}/composer.local.json ${MW_INSTALL_PATH}/composer.local.json
  #+END_SRC
 
 12) Handle composer
@@ -232,13 +232,13 @@ export RELBRANCH=~{relbranch}~
    if [ ! -f composer ];then
 	   ./getcomposer.sh
    fi
-   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sh -c \"'cd ${MW_INSTALL_Path} ; php ${DIR}/composer -v update 2>&1'\""
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sh -c \"'cd ${MW_INSTALL_PATH} ; php ${DIR}/composer -v update 2>&1'\""
  #+END_SRC
 
 13) Install everything
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
    rm -f LocalSettings.php
-   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} php ${MW_INSTALL_Path}/maintenance/install.php --dbserver=${DBSERVER} --dbname=${DBNAME} --confpath=${DIR} --scriptpath=${WIKIPATH} --installdbpass=${WIKIDBPASS} --installdbuser=${WIKIDBUSER} --server=${WIKISERVER} --pass=${WIKIPASS} ${WIKI} ${WIKIUSER} 2>&1"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} php ${MW_INSTALL_PATH}/maintenance/install.php --dbserver=${DBSERVER} --dbname=${DBNAME} --confpath=${DIR} --scriptpath=${WIKIPATH} --installdbpass=${WIKIDBPASS} --installdbuser=${WIKIDBUSER} --server=${WIKISERVER} --pass=${WIKIPASS} ${WIKI} ${WIKIUSER} 2>&1"
  #+END_SRC
 
 14) Make LocalSettings.php get settings from environment
@@ -251,8 +251,8 @@ export RELBRANCH=~{relbranch}~
    sed -i "s,^.wgDBname =.*,\$wgDBname = getenv('DBNAME');," LocalSettings.php
    sed -i "s,^.wgDBuser =.*,\$wgDBuser = getenv('WIKIDBUSER');," LocalSettings.php
    sed -i "s,^.wgDBpassword =.*,\$wgDBpassword = getenv('WIKIDBPASS');," LocalSettings.php
-   rm -f ${MW_INSTALL_Path}/LocalSettings.php && ln -s ${DIR}/LocalSettings.php ${MW_INSTALL_Path}
-   rm -f ${MW_INSTALL_Path}/.htaccess && ln -s ${DIR}/.htaccess ${MW_INSTALL_Path}
+   rm -f ${MW_INSTALL_PATH}/LocalSettings.php && ln -s ${DIR}/LocalSettings.php ${MW_INSTALL_PATH}
+   rm -f ${MW_INSTALL_PATH}/.htaccess && ln -s ${DIR}/.htaccess ${MW_INSTALL_PATH}
  #+END_SRC
 
 14a) Turn on Debugging if requested
@@ -281,14 +281,14 @@ export RELBRANCH=~{relbranch}~
 
 2) Handle composer and db update
 #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
-  eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sh -c \"'. ${DIR}/.envrc; php ${MW_INSTALL_Path}/maintenance/update.php --quick'\""
+  eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sh -c \"'. ${DIR}/.envrc; php ${MW_INSTALL_PATH}/maintenance/update.php --quick'\""
 #+END_SRC
 
 3) Adapt and install mediawiki config
  #+BEGIN_SRC apache :tangle wiki.conf
-   Alias /wiki ${MW_INSTALL_Path}
+   Alias /wiki ${MW_INSTALL_PATH}
 
-   <Directory ${MW_INSTALL_Path}/>
+   <Directory ${MW_INSTALL_PATH}/>
 		   Options +FollowSymLinks
 		   AllowOverride All
 		   <IfVersion >= 2.3>
@@ -301,7 +301,7 @@ export RELBRANCH=~{relbranch}~
    </Directory>
 
    # some directories must be protected
-   <Directory ${MW_INSTALL_Path}/config>
+   <Directory ${MW_INSTALL_PATH}/config>
 		   Options -FollowSymLinks
 		   AllowOverride None
 	   <IfModule mod_php7.c>
@@ -311,7 +311,7 @@ export RELBRANCH=~{relbranch}~
 		   php_admin_flag engine off
 	   </IfModule>
    </Directory>
-   <Directory ${MW_INSTALL_Path}/images>
+   <Directory ${MW_INSTALL_PATH}/images>
 		   Options -FollowSymLinks
 		   AllowOverride None
 	   <IfModule mod_php7.c>
@@ -321,7 +321,7 @@ export RELBRANCH=~{relbranch}~
 		   php_admin_flag engine off
 	   </IfModule>
    </Directory>
-   <Directory ${MW_INSTALL_Path}/upload>
+   <Directory ${MW_INSTALL_PATH}/upload>
 		   Options -FollowSymLinks
 		   AllowOverride None
 	   <IfModule mod_php7.c>
@@ -331,12 +331,12 @@ export RELBRANCH=~{relbranch}~
 		   php_admin_flag engine off
 	   </IfModule>
    </Directory>
-   <Directory ${MW_INSTALL_Path} >
+   <Directory ${MW_INSTALL_PATH} >
 		   AllowOverride FileInfo AuthConfig Limit Indexes
 		   Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
 		   Require method GET POST OPTIONS
    </Directory>
-   <Directory ${MW_INSTALL_Path} >
+   <Directory ${MW_INSTALL_PATH} >
 		   AllowOverride FileInfo AuthConfig Limit Indexes
 		   Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
 		   Require method GET POST OPTIONS
@@ -350,8 +350,8 @@ export RELBRANCH=~{relbranch}~
 
 4) Set up links for .htaccess
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
- rm -f ${MW_INSTALL_Path}/.htaccess
- ln -s ${DIR}/.htaccess ${MW_INSTALL_Path}/.htaccess
+ rm -f ${MW_INSTALL_PATH}/.htaccess
+ ln -s ${DIR}/.htaccess ${MW_INSTALL_PATH}/.htaccess
  #+END_SRC
 
 ** MABS
