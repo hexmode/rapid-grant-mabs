@@ -106,8 +106,8 @@ export RELBRANCH=~{relbranch}~
    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
    . $DIR/.envrc
 
-   test -d ${MW_INSTALL_DIR} || git clone ${LOCAL_GIT} ${MW_INSTALL_DIR}
-   cd ${MW_INSTALL_DIR}
+   test -d ${MW_INSTALL_PATH} || git clone ${LOCAL_GIT} ${MW_INSTALL_PATH}
+   cd ${MW_INSTALL_PATH}
    git remote set-url origin ${UPSTREAM_GIT}
    git fetch
    branch=`git branch -q | awk '/^\*/ {print $2}'`
