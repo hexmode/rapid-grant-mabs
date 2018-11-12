@@ -1,9 +1,9 @@
 #!/bin/bash -e
-up=`sudo virsh list --all | grep mabs || true`
+up=`sudo virsh list --all | grep ${WIKI} || true`
 if [ -n "$up" ]; then
-	sudo virsh destroy mabs
-	sudo virsh undefine mabs
-	sudo rm /home/mah/MachineImages/mabs.img
+	sudo virsh destroy ${WIKI}
+	sudo virsh undefine ${WIKI}
+	sudo rm ${VMPATH}/${WIKI}.img
 else
 	echo Nothing to do
 fi

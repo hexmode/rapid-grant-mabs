@@ -79,7 +79,7 @@ http://~{host}~
 REL1_31
 #+END_SRC
 
-1) Set up =.envrc= get composer.
+1) Set up =.envrc=
  #+BEGIN_SRC sh :tangle .envrc
 export LOCAL_GIT=~{local-git}~
 export UPSTREAM_GIT=~{upstream-git}~
@@ -103,23 +103,23 @@ export RELBRANCH=~{relbranch}~
 
 2) check out correct branch
  #+BEGIN_SRC sh :shell bash :tangle setupenv.sh :shebang #!/bin/bash -e
-   test -d ~{mw-install-path}~ || git clone ~{local-git}~ ~{mw-install-path}~
-   cd ~{mw-install-path}~
-   git remote set-url origin ~{upstream-git}~
+   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+   . $DIR/.envrc
+
+   test -d ${MW_INSTALL_DIR} || git clone ${LOCAL_GIT} ${MW_INSTALL_DIR}
+   cd ${MW_INSTALL_DIR}
+   git remote set-url origin ${UPSTREAM_GIT}
    git fetch
    branch=`git branch -q | awk '/^\*/ {print $2}'`
-   test "$branch" = "~{relbranch}~" || git checkout ~{relbranch}~
+   test "$branch" = "${RELBRANCH}" || git checkout ${RELBRANCH}
    git submodule update --init
-   echo on ~{relbranch}~
-   cd ~{dir}~
+   echo on ${RELBRANCH}
+   cd ${DIR}
  #+END_SRC
-
- #+RESULTS:
- : on REL1_31
 
 3) Export this directory via nfs
  #+BEGIN_SRC sh :shell bash :tangle setupenv.sh
-   grep -q "~{dir}~" /etc/exports || echo "~{dir}~ *(rw,root_squash,subtree_check)" | sudo tee -a /etc/exports
+   grep -q "${DIR}" /etc/exports || echo "${DIR} *(rw,root_squash,subtree_check)" | sudo tee -a /etc/exports
    sudo exportfs -ra
  #+END_SRC
 
@@ -149,19 +149,19 @@ export RELBRANCH=~{relbranch}~
 	   set -e
    }
 
-   if [ ! -f "~{vmpath}~/~{wiki}~.img" ]; then
-	   sudo virt-clone --original mediawiki-debian --name "~{wiki}~" --file "~{vmpath}~/~{wiki}~.img"
+   if [ ! -f "${VMPATH}/${WIKI}.img" ]; then
+	   sudo virt-clone --original mediawiki-debian --name "${WIKI}" --file "${VMPATH}/${WIKI}.img"
    fi
  #+END_SRC
 
 5) Start new machine
  #+BEGIN_SRC sh :shell bash :tangle setupvm.sh :shebang #!/bin/bash -e
-   sudo virsh list --all | grep -q ~{wiki}~.*run || sudo virsh start ~{wiki}~
+   sudo virsh list --all | grep -q ${WIKI}.*run || sudo virsh start ${WIKI}
 
    connect debian.default 10
 
    if [ $count -ge $total ]; then
-	   echo "Couldn't start ~{wiki}~"
+	   echo "Couldn't start ${WIKI}"
 	   exit 1
    fi
  #+END_SRC
@@ -170,28 +170,28 @@ export RELBRANCH=~{relbranch}~
 
 6) Using =debian.default= to log into the machine to change the machine name and reboot
  #+BEGIN_SRC sh :shell bash :tangle setupvm.sh
-   eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,~{wiki}~,g /etc/hostname"
-   eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,~{wiki}~,g /etc/hosts"
+   eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,${WIKI},g /etc/hostname"
+   eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,${WIKI},g /etc/hosts"
    eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo reboot"
 
-   connect ~{host}~ 10
+   connect ${HOST} 10
  #+END_SRC
 
 ** MediaWiki setup
 7) Update apt cache and install deps
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh :shebang #!/bin/bash -e
-   sed -i s,debian.default,~{host}~, hostpubkey
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo apt update"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo apt upgrade -y"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo apt install -y php-zip memcached imagemagick clamav php-cli php-intl php-curl php-wikidiff2 python apache2 php php-mysqlnd php-mbstring php-xml mime-support libapache2-mod-fcgid php-fpm"
+   sed -i s,debian.default,${HOST}, hostpubkey
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo apt update"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo apt upgrade -y"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo apt install -y php-zip memcached imagemagick clamav php-cli php-intl php-curl php-wikidiff2 python apache2 php php-mysqlnd php-mbstring php-xml mime-support libapache2-mod-fcgid php-fpm"
  #+END_SRC
 
 10) Mount shared directory:
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo apt install -y nfs-common"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ mkdir -p ~{dir}~"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ cat /etc/fstab" | grep -q "~{dir}~" || echo "~{hostserver}~:~{dir}~ ~{dir}~ nfs rw,soft,user 0 0" | eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo tee -a /etc/fstab"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ mount ~{dir}~"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo apt install -y nfs-common"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} mkdir -p ${DIR}"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} cat /etc/fstab" | grep -q "${DIR}" || echo "${HOSTSERVER}:${DIR} ${DIR} nfs rw,soft,user 0 0" | eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo tee -a /etc/fstab"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} mount ${DIR}"
  #+END_SRC
 
 11) Enable SMW and SESP
@@ -201,7 +201,7 @@ export RELBRANCH=~{relbranch}~
    jq '.["require"]["mediawiki/semantic-media-wiki"] = "^2.5"' composer.local.json | sponge composer.local.json
    jq '.["require"]["mediawiki/mabs"] = "dev-master"' composer.local.json | sponge composer.local.json
 
-   rm -f ~{mw-install-path}~/composer.local.json && ln -s ~{dir}~/composer.local.json ~{mw-install-path}~/composer.local.json
+   rm -f ${MW_INSTALL_Path}/composer.local.json && ln -s ${DIR}/composer.local.json ${MW_INSTALL_Path}/composer.local.json
  #+END_SRC
 
 12) Handle composer
@@ -232,13 +232,13 @@ export RELBRANCH=~{relbranch}~
    if [ ! -f composer ];then
 	   ./getcomposer.sh
    fi
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sh -c \"'cd ~{mw-install-path}~ ; php ~{dir}~/composer -v update 2>&1'\""
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sh -c \"'cd ${MW_INSTALL_Path} ; php ${DIR}/composer -v update 2>&1'\""
  #+END_SRC
 
 13) Install everything
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
    rm -f LocalSettings.php
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ php ~{mw-install-path}~/maintenance/install.php --dbserver=~{dbserver}~ --dbname=~{dbname}~ --confpath=~{dir}~ --scriptpath=~{wikipath}~ --installdbpass=~{wikidbpass}~ --installdbuser=~{wikidbuser}~ --server=~{wikiserver}~ --pass=~{wikipass}~ ~{wiki}~ ~{wikiuser}~ 2>&1"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} php ${MW_INSTALL_Path}/maintenance/install.php --dbserver=${DBSERVER} --dbname=${DBNAME} --confpath=${DIR} --scriptpath=${WIKIPATH} --installdbpass=${WIKIDBPASS} --installdbuser=${WIKIDBUSER} --server=${WIKISERVER} --pass=${WIKIPASS} ${WIKI} ${WIKIUSER} 2>&1"
  #+END_SRC
 
 14) Make LocalSettings.php get settings from environment
@@ -251,8 +251,8 @@ export RELBRANCH=~{relbranch}~
    sed -i "s,^.wgDBname =.*,\$wgDBname = getenv('DBNAME');," LocalSettings.php
    sed -i "s,^.wgDBuser =.*,\$wgDBuser = getenv('WIKIDBUSER');," LocalSettings.php
    sed -i "s,^.wgDBpassword =.*,\$wgDBpassword = getenv('WIKIDBPASS');," LocalSettings.php
-   rm -f ~{mw-install-path}~/LocalSettings.php && ln -s ~{dir}~/LocalSettings.php ~{mw-install-path}~
-   rm -f ~{mw-install-path}~/.htaccess && ln -s ~{dir}~/.htaccess ~{mw-install-path}~
+   rm -f ${MW_INSTALL_Path}/LocalSettings.php && ln -s ${DIR}/LocalSettings.php ${MW_INSTALL_Path}
+   rm -f ${MW_INSTALL_Path}/.htaccess && ln -s ${DIR}/.htaccess ${MW_INSTALL_Path}
  #+END_SRC
 
 14a) Turn on Debugging if requested
@@ -268,7 +268,7 @@ export RELBRANCH=~{relbranch}~
 	$wgDebugLogFile = "$IP/cache/debug.log";
   #+END_SRC
   #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
-	if [ "~{debug}~" = "y" ]; then
+	if [ "${DEBUG}" = "y" ]; then
 		grep -q __DIR__..../Debug.php LocalSettings.php || echo 'require __DIR__ . "/Debug.php";' | tee -a LocalSettings.php
 	fi
   #+END_SRC
@@ -281,14 +281,14 @@ export RELBRANCH=~{relbranch}~
 
 2) Handle composer and db update
 #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
-  eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sh -c \"'. ~{dir}~/.envrc; php ~{mw-install-path}~/maintenance/update.php --quick'\""
+  eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sh -c \"'. ${DIR}/.envrc; php ${MW_INSTALL_Path}/maintenance/update.php --quick'\""
 #+END_SRC
 
 3) Adapt and install mediawiki config
  #+BEGIN_SRC apache :tangle wiki.conf
-   Alias /wiki ~{mw-install-path}~
+   Alias /wiki ${MW_INSTALL_Path}
 
-   <Directory ~{mw-install-path}~/>
+   <Directory ${MW_INSTALL_Path}/>
 		   Options +FollowSymLinks
 		   AllowOverride All
 		   <IfVersion >= 2.3>
@@ -301,7 +301,7 @@ export RELBRANCH=~{relbranch}~
    </Directory>
 
    # some directories must be protected
-   <Directory ~{mw-install-path}~/config>
+   <Directory ${MW_INSTALL_Path}/config>
 		   Options -FollowSymLinks
 		   AllowOverride None
 	   <IfModule mod_php7.c>
@@ -311,7 +311,7 @@ export RELBRANCH=~{relbranch}~
 		   php_admin_flag engine off
 	   </IfModule>
    </Directory>
-   <Directory ~{mw-install-path}~/images>
+   <Directory ${MW_INSTALL_Path}/images>
 		   Options -FollowSymLinks
 		   AllowOverride None
 	   <IfModule mod_php7.c>
@@ -321,7 +321,7 @@ export RELBRANCH=~{relbranch}~
 		   php_admin_flag engine off
 	   </IfModule>
    </Directory>
-   <Directory ~{mw-install-path}~/upload>
+   <Directory ${MW_INSTALL_Path}/upload>
 		   Options -FollowSymLinks
 		   AllowOverride None
 	   <IfModule mod_php7.c>
@@ -331,50 +331,50 @@ export RELBRANCH=~{relbranch}~
 		   php_admin_flag engine off
 	   </IfModule>
    </Directory>
-   <Directory ~{mw-install-path}~ >
+   <Directory ${MW_INSTALL_Path} >
 		   AllowOverride FileInfo AuthConfig Limit Indexes
 		   Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
 		   Require method GET POST OPTIONS
    </Directory>
-   <Directory ~{mw-install-path}~ >
+   <Directory ${MW_INSTALL_Path} >
 		   AllowOverride FileInfo AuthConfig Limit Indexes
 		   Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
 		   Require method GET POST OPTIONS
    </Directory>
  #+END_SRC
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo cp ~{dir}~/wiki.conf /etc/apache2/conf-available"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo a2enconf wiki"
-   eval "ssh -o UserKnownHostsFile=hostpubkey ~{host}~ sudo service apache2 reload"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo cp ${DIR}/wiki.conf /etc/apache2/conf-available"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo a2enconf wiki"
+   eval "ssh -o UserKnownHostsFile=hostpubkey ${HOST} sudo service apache2 reload"
  #+END_SRC
 
 4) Set up links for .htaccess
  #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
- rm -f ~{mw-install-path}~/.htaccess
- ln -s ~{dir}~/.htaccess ~{mw-install-path}~/.htaccess
+ rm -f ${MW_INSTALL_Path}/.htaccess
+ ln -s ${DIR}/.htaccess ${MW_INSTALL_Path}/.htaccess
  #+END_SRC
 
 ** MABS
 Create repository dir and point wiki to it
  #+BEGIN_SRC sh :shell bash :tangle setupmabs.sh :shebang #!/bin/bash -e
-   ssh -o UserKnownHostsFile=hostpubkey ~{host}~ 'mkdir -p ~{repo-dir}~; chmod 1777 ~{repo-dir}~'
-   grep -q MABSRepo.*= LocalSettings.php || echo '$MABSRepo = "~{repo-dir}~";' | tee -a LocalSettings.php
+   ssh -o UserKnownHostsFile=hostpubkey ${HOST} 'mkdir -p ${REPO_DIR}; chmod 1777 ${REPO_DIR}'
+   grep -q MABSRepo.*= LocalSettings.php || echo '$MABSRepo = "${REPO_DIR}";' | tee -a LocalSettings.php
 #+END_SRC
 
 * Tear down machine
   #+BEGIN_SRC sh :shell bash :tangle teardownvm.sh :noweb yes :shebang #!/bin/bash -e
-	up=`sudo virsh list --all | grep ~{wiki}~ || true`
+	up=`sudo virsh list --all | grep ${WIKI} || true`
 	if [ -n "$up" ]; then
-		sudo virsh destroy ~{wiki}~
-		sudo virsh undefine ~{wiki}~
-		sudo rm ~{vmpath}~/~{wiki}~.img
+		sudo virsh destroy ${WIKI}
+		sudo virsh undefine ${WIKI}
+		sudo rm ${VMPATH}/${WIKI}.img
 	else
 		echo Nothing to do
 	fi
   #+END_SRC
 * Drop DB
   #+BEGIN_SRC sh :shell bash :tangle dropdb.sh :noweb yes :shebang #!/bin/bash -e
-	sudo mysqladmin drop -f ~{dbname}~
+	sudo mysqladmin drop -f ${DBNAME}
   #+END_SRC
 * Local Variables
 # Local Variables:

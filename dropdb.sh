@@ -1,2 +1,2 @@
 #!/bin/bash -e
-sudo mysqladmin drop -f mabs
+sudo mysqladmin drop -f ${DBNAME}

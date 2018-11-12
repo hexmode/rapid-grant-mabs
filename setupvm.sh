@@ -18,21 +18,21 @@ connect() {
 	set -e
 }
 
-if [ ! -f "/home/mah/MachineImages/mabs.img" ]; then
-	sudo virt-clone --original mediawiki-debian --name "mabs" --file "/home/mah/MachineImages/mabs.img"
+if [ ! -f "${VMPATH}/${WIKI}.img" ]; then
+	sudo virt-clone --original mediawiki-debian --name "${WIKI}" --file "${VMPATH}/${WIKI}.img"
 fi
 
-sudo virsh list --all | grep -q mabs.*run || sudo virsh start mabs
+sudo virsh list --all | grep -q ${WIKI}.*run || sudo virsh start ${WIKI}
 
 connect debian.default 10
 
 if [ $count -ge $total ]; then
-	echo "Couldn't start mabs"
+	echo "Couldn't start ${WIKI}"
 	exit 1
 fi
 
-eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,mabs,g /etc/hostname"
-eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,mabs,g /etc/hosts"
+eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,${WIKI},g /etc/hostname"
+eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo sed -i s,debian,${WIKI},g /etc/hosts"
 eval "ssh -o UserKnownHostsFile=hostpubkey debian.default sudo reboot"
 
-connect mabs.default 10
+connect ${HOST} 10
