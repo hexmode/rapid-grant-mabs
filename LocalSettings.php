@@ -19,18 +19,18 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
 
-$wgSitename = getenv('WIKI');
-$wgMetaNamespace = ucfirst( getenv('WIKI') );
+$wgSitename = getenv( 'WIKI' );
+$wgMetaNamespace = ucfirst( getenv( 'WIKI' ) );
 
 ## The URL base path to the directory containing the wiki;
 ## defaults for all runtime URL paths are based off of this.
 ## For more information on customizing the URLs
 ## (like /w/index.php/Page_title to /wiki/Page_title) please see:
 ## https://www.mediawiki.org/wiki/Manual:Short_URL
-$wgScriptPath = getenv('WIKIPATH');
+$wgScriptPath = getenv( 'WIKIPATH' );
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = getenv('WIKISERVER');
+$wgServer = getenv( 'WIKISERVER' );
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
@@ -53,10 +53,10 @@ $wgEmailAuthentication = true;
 
 ## Database settings
 $wgDBtype = "mysql";
-$wgDBserver = getenv('DBSERVER');
-$wgDBname = getenv('DBNAME');
-$wgDBuser = getenv('WIKIDBUSER');
-$wgDBpassword = getenv('WIKIDBPASS');
+$wgDBserver = getenv( 'DBSERVER' );
+$wgDBname = getenv( 'DBNAME' );
+$wgDBuser = getenv( 'WIKIDBUSER' );
+$wgDBpassword = getenv( 'WIKIDBPASS' );
 
 # MySQL specific settings
 $wgDBprefix = "";
@@ -95,14 +95,14 @@ $wgShellLocale = "C.UTF-8";
 # Site language code, should be one of the list in ./languages/data/Names.php
 $wgLanguageCode = "en";
 
-$wgSecretKey = "13d9156b493ef4ef18b1a4cc3c4e11769e0ea878cf501f704c1a8e8dc6265bbb";
+$wgSecretKey = "402c20877c9e4b39b9a73e10f992832f45e9176895d9d91a6af529b644c1cf2c";
 
 # Changing this will log out all existing sessions.
 $wgAuthenticationTokenVersion = "1";
 
 # Site upgrade key. Must be set to a string (default provided) to turn on the
 # web installer while LocalSettings.php is in place
-$wgUpgradeKey = "fa81db33b48c389c";
+$wgUpgradeKey = "9b6c2e191cc9a2fe";
 
 ## For attaching licensing metadata to pages, and displaying an
 ## appropriate copyright notice / icon. GNU Free Documentation
@@ -132,4 +132,5 @@ wfLoadSkin( 'Vector' );
 require __DIR__ . "/Debug.php";
 wfLoadExtension( 'ParserFunctions' );
 wfLoadExtension( 'MABS' );
-$MABSRepo = "/home/mah/repo";
+
+$MABSRepo = '/home/mah/repo';

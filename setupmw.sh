@@ -36,7 +36,7 @@ rm -f ${MW_INSTALL_PATH}/composer.local.json &&
 if [ ! -f composer ];then
 	./getcomposer.sh
 fi
-sshIt sh -c \""cd ${MW_INSTALL_PATH} ; php ${DIR}/composer -v update 2>&1"\"
+sshIt sh -c "cd ${MW_INSTALL_PATH} ; php ${DIR}/composer -v update 2>&1"
 
 rm -f LocalSettings.php
 sshIt php ${MW_INSTALL_PATH}/maintenance/install.php --dbserver=${DBSERVER} --dbname=${DBNAME} \
@@ -67,11 +67,13 @@ grep -q MABS LocalSettings.php ||
 
 sshIt sh -c "'. ${DIR}/.envrc; php ${MW_INSTALL_PATH}/maintenance/update.php --quick'"
 
+sudoIt rm -f /etc/apache2/conf-*/wiki.conf
 sudoIt cp ${DIR}/wiki.conf /etc/apache2/conf-available
 sudoIt a2enconf wiki
-sshIt grep -q ${DIR}/.envrc /etc/apache2/envvars ||
-	echo ". ${DIR}/.envrc" | sudoIt tee -a /etc/apache2/envvars
-sudoIt service apache2 reload
+sshIt cat /etc/apache2/envvars | grep -q ${DIR}/.envrc ||
+	( echo ". ${DIR}/.envrc" | sudoIt tee -a /etc/apache2/envvars )
+sudoIt service apache2 stop
+sudoIt service apache2 start    # This instead of reload to make sure envvars is used
 
 rm -f ${MW_INSTALL_PATH}/.htaccess
 ln -s ${DIR}/.htaccess ${MW_INSTALL_PATH}/.htaccess

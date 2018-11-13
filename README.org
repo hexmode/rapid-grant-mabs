@@ -99,6 +99,7 @@ export WIKIPASS=~{wikipass}~
 export WIKISERVER=~{wikiserver}~
 export WIKIPATH=~{wikipath}~
 export RELBRANCH=~{relbranch}~
+export REPO_DIR=~{repo-dir}~
 #+END_SRC
 
 2) check out correct branch
@@ -180,9 +181,10 @@ export RELBRANCH=~{relbranch}~
 
   debianSudoIt sed -i s,debian,${WIKI},g /etc/hostname
   debianSudoIt sed -i s,debian,${WIKI},g /etc/hosts
-  debianSudoIt reboot
+  debianSudoIt reboot || true
 
-  connect ${HOST} 10
+  connect ${HOST} 15
+  exit 0
 #+END_SRC
 
 ** MediaWiki setup
@@ -256,7 +258,7 @@ export RELBRANCH=~{relbranch}~
   if [ ! -f composer ];then
 	  ./getcomposer.sh
   fi
-  sshIt sh -c \""cd ${MW_INSTALL_PATH} ; php ${DIR}/composer -v update 2>&1"\"
+  sshIt sh -c "cd ${MW_INSTALL_PATH} ; php ${DIR}/composer -v update 2>&1"
 #+END_SRC
 
 13) Install everything
@@ -373,11 +375,13 @@ export RELBRANCH=~{relbranch}~
    </Directory>
 #+END_SRC
 #+BEGIN_SRC sh :shell bash :tangle setupmw.sh
+  sudoIt rm -f /etc/apache2/conf-*/wiki.conf
   sudoIt cp ${DIR}/wiki.conf /etc/apache2/conf-available
   sudoIt a2enconf wiki
-  sshIt grep -q ${DIR}/.envrc /etc/apache2/envvars ||
-	  echo ". ${DIR}/.envrc" | sudoIt tee -a /etc/apache2/envvars
-  sudoIt service apache2 reload
+  sshIt cat /etc/apache2/envvars | grep -q ${DIR}/.envrc ||
+	  ( echo ". ${DIR}/.envrc" | sudoIt tee -a /etc/apache2/envvars )
+  sudoIt service apache2 stop
+  sudoIt service apache2 start    # This instead of reload to make sure envvars is used
 #+END_SRC
 
 4) Set up links for .htaccess
@@ -389,9 +393,12 @@ export RELBRANCH=~{relbranch}~
 ** MABS
 Create repository dir and point wiki to it
 #+BEGIN_SRC sh :shell bash :tangle setupmabs.sh :shebang #!/bin/bash -e
-   ssh -o UserKnownHostsFile=hostpubkey ${HOST} 'mkdir -p ${REPO_DIR}; chmod 1777 ${REPO_DIR}'
-   grep -q MABSRepo.*= LocalSettings.php ||
-	   echo '$MABSRepo = "${REPO_DIR}";' | tee -a LocalSettings.php
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+  . $DIR/.envrc
+
+  ssh -o UserKnownHostsFile=hostpubkey ${HOST} "mkdir -p ${REPO_DIR}; chmod 1777 ${REPO_DIR}"
+  grep -q MABSRepo.*= LocalSettings.php ||
+	   echo "\$MABSRepo = '${REPO_DIR}';" | tee -a LocalSettings.php
 #+END_SRC
 
 * Tear down machine
@@ -407,7 +414,11 @@ Create repository dir and point wiki to it
 #+END_SRC
 * Drop DB
 #+BEGIN_SRC sh :shell bash :tangle dropdb.sh :noweb yes :shebang #!/bin/bash -e
-	sudo mysqladmin drop -f ${DBNAME}
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+  . $DIR/.envrc
+
+  echo 'show databases;' | sudo mysql | grep -q ${DBNAME} ||
+	  sudo mysqladmin drop -f ${DBNAME}
 #+END_SRC
 * Local Variables
 # Local Variables:

@@ -40,6 +40,7 @@ debianSudoIt() {
 
 debianSudoIt sed -i s,debian,${WIKI},g /etc/hostname
 debianSudoIt sed -i s,debian,${WIKI},g /etc/hosts
-debianSudoIt reboot
+debianSudoIt reboot || true
 
-connect ${HOST} 10
+connect ${HOST} 15
+exit 0
