@@ -214,7 +214,7 @@ export REPO_DIR=~{repo-dir}~
    sudoIt apt install -y nfs-common
    sshIt mkdir -p ${DIR}
    sshIt cat /etc/fstab | grep -q "${DIR}" ||
-	   echo "${HOSTSERVER}:${DIR} ${DIR} nfs rw,soft,user 0 0" | sudoIt tee -a /etc/fstab
+	   echo "${HOSTSERVER}:${DIR} ${DIR} nfs rw,soft,user,exec 0 0" | sudoIt tee -a /etc/fstab
    sshIt mount ${DIR}
 #+END_SRC
 
