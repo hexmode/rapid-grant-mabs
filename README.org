@@ -121,9 +121,10 @@ export REPO_DIR=~{repo-dir}~
 3) Export this directory via nfs
 #+BEGIN_SRC sh :shell bash :tangle setupenv.sh
   grep -q "${DIR}" /etc/exports ||
-	  echo "${DIR} *(rw,root_squash,subtree_check)" | sudo tee -a /etc/exports
+	  echo "${DIR} *(rw,no_root_squash,no_subtree_check,insecure_locks,async)" | sudo tee -a /etc/exports
   sudo exportfs -ra
 #+END_SRC
+(Note that these nfs exports options should not be used for a publically accessible nfs server.)
 
 ** Set up machine
 4) Clone prepared debian image image
